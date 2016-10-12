@@ -37,9 +37,9 @@ def _get_results(tree, year):
     projects = []
     
     for t in tree.findAll('li', {'class': 'mdl-list__item mdl-list__item--one-line'}):   
-        org = _clean(t.text)
-        print org
+        org = _clean(t.findChildren('a')[0].text)
         a = t.findChildren('a')[0]['href']
+
         org_url = 'https://www.google-melange.com' + a
         org_tree = _get_tree(org_url)
 
@@ -50,9 +50,11 @@ def _get_results(tree, year):
             for p in projs:
                 proj_url = 'https://www.google-melange.com' + p
                 proj_tree = _get_tree(proj_url)
+                
                 title = _clean(proj_tree.findAll('h3')[0].text)
                 p = proj_tree.findAll('p')
                 bio = _clean(p[0].text)
+                
                 student = bio.split('by')[-1].split('for')[0]
                 description = _clean(p[1].text)
                 projects.append((title, org, student, description))
@@ -62,16 +64,15 @@ def _get_results(tree, year):
 def _clean(str):
     return str.replace('\n', '').replace("  ", "").encode("utf-8")
 
-
 def _save_results(projects, year):
-
+    """Save results in a CSV file."""
     titles = [p[0] for p in projects]
     descriptions = [p[1] for p in projects]
     students = [p[2] for p in projects]
     orgs = [p[3] for p in projects]
     rows = zip(titles, descriptions, students, orgs)
 
-    with open('data/data'+year+'.csv', 'wb') as f:
+    with open('data/'+year+'.csv', 'wb') as f:
         writer = csv.writer(f)
         for row in rows:
             writer.writerow(row)
@@ -82,4 +83,8 @@ def parse(year):
     _get_results(tree, year)
 
 if __name__ == '__main__':
-    parse('2015')
+    
+    years = ['2009', '2010', '2011', '2012', '2013', '2014']
+    for y in years:
+        parse(y)
+
